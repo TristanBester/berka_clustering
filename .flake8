@@ -1,2 +1,6 @@
 [flake8]
-ignore = D100, D104, ANN101, D301, D401, ANN401, ANN102, E203, I001, I005, W503, D403, E501, E741
+ignore = D100, D104, ANN101, D301, D401, ANN401, ANN102, E203, I001, I005, W503, D403
+docstring-convention = google
+max-complexity = 10
+max-line-length = 88
+exclude = .git,__pycache__,__init__.py,.mypy_cache,.pytest_cache
