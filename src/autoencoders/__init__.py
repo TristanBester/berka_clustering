@@ -1,1 +1,2 @@
-from .resnet import ResNetAE
+from .fcnn import FCNNAutoencoder
+from .resnet import ResNetAutoencoder

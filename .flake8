@@ -1,5 +1,5 @@
 [flake8]
-ignore = D100, D104, ANN101, D301, D401, ANN401, ANN102, E203, I001, I005, W503, D403
+ignore = D100, D104, ANN101, D301, D401, ANN401, ANN102, E203, I001, I005, W503, D403, E741
 docstring-convention = google
 max-complexity = 10
 max-line-length = 88

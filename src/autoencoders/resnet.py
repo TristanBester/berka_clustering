@@ -97,7 +97,7 @@ class Decoder(nn.Module):
         return x
 
 
-class ResNetAE(nn.Module):
+class ResNetAutoencoder(nn.Module):
     def __init__(self, in_channels, seq_len, embedding_dim, pooling_kernel) -> None:
         super().__init__()
 
