@@ -1,0 +1,8 @@
+import torch.nn.functional as F
+
+
+def mse_loss_handler(encoder, embedding, decoder, x):
+    h = encoder(x)
+    z, _, _ = embedding(h)
+    x_prime = decoder(z)
+    return F.mse_loss(x_prime, x)

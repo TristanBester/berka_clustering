@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def VAE_loss(x, decoded, z_mean, z_log_var):
+def _vae_loss(x, decoded, z_mean, z_log_var):
     """ELBO loss"""
     # Sum over latent dimension
     kl_div = (
@@ -13,6 +13,8 @@ def VAE_loss(x, decoded, z_mean, z_log_var):
     return mse_loss + kl_div
 
 
-def vae_loss_handler(model, x):
-    decoded, z_mean, z_log_var = model(x)
-    return VAE_loss(x, decoded, z_mean, z_log_var)
+def vae_loss_handler(encoder, embedding, decoder, x):
+    h = encoder(x)
+    z, z_mean, z_log_var = embedding(h)
+    x_prime = decoder(z)
+    return _vae_loss(x, x_prime, z_mean, z_log_var)
