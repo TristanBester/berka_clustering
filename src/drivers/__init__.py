@@ -1,2 +1,3 @@
+from .cluster import calculate_clusters_from_latents, calculate_clusters_from_layer
 from .pretrain import pretrain_autoencoder
 from .train import train_clustering_layer

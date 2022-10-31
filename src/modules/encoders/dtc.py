@@ -42,6 +42,7 @@ class DTCEncoder(nn.Module):
             bidirectional=True,
             batch_first=True,
         )
+        self.output_dim = None
 
     def forward(self, x):
         x = F.leaky_relu(self.cnn(x))

@@ -1,10 +1,7 @@
 import torch.optim as optim
 
-from ..models import Autoencoder
 
-
-def pretrain_autoencoder(config, loader):
-    model = Autoencoder(config)
+def pretrain_autoencoder(model, loader):
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
     for i in range(10):
@@ -15,4 +12,3 @@ def pretrain_autoencoder(config, loader):
             loss.backward()
             optimizer.step()
         print(loss.item())
-    return model
