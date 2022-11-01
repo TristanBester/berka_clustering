@@ -18,14 +18,15 @@ def train_clustering_layer(encoder, embedding, decoder, metric, n_clusters, load
     cl_model = _init_cluster_model(
         encoder, embedding, decoder, metric, n_clusters, loader
     )
-
     optimizer = optim.Adam(cl_model.parameters(), lr=0.0001)
-    for i in range(10):
-        for x, y in loader:
+    batch_count = 0
+
+    while batch_count < 1000:
+        for x, _ in loader:
             loss = cl_model(x)
 
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        # print(loss.item())
+            batch_count += 1
     return cl_model

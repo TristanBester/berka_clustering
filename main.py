@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from tqdm import tqdm
 
-from src.dataloaders import BeetleFly
+from src.datasets import BeetleFly, Berka
 from src.db import get_config_by_id, get_results_missing_run, log_run_result
 from src.drivers import (
     calculate_clusters_from_latents,
@@ -118,9 +118,11 @@ if __name__ == "__main__":
     result_collection = db.result_collection
 
     test_frac = 0.5
-    batch_size = 5
+    batch_size = 32
     np.random.seed(0)
-    dataset = BeetleFly(path="data/BeetleFly/BeetleFly_TRAIN")
+    dataset = Berka(
+        account_path="data/Berka/account.csv", transaction_path="data/Berka/trans.csv"
+    )
 
     # Creating data indices for training and validation splits:
     dataset_size = len(dataset)
@@ -138,8 +140,10 @@ if __name__ == "__main__":
     X_train = load_dataset(train_loader)
     X_test = load_dataset(test_loader)
 
-    results = get_results_missing_run(result_collection, "run_test")
-    doc_count = result_collection.count_documents({"run_test": {"$exists": False}})
+    run_name = "run_two"
+
+    results = get_results_missing_run(result_collection, run_name)
+    doc_count = result_collection.count_documents({run_name: {"$exists": False}})
 
     for res in tqdm(results, total=doc_count):
         cfg = get_config_by_id(config_collection, res["config_id"])
@@ -154,7 +158,7 @@ if __name__ == "__main__":
             n_clusters=cfg["n_clusters"],
             dim_reduction=cfg["dim_reduction"],
             reduced_dim=cfg["reduced_dim"],
-            seq_len=512,
+            seq_len=675,
             train_loader=train_loader,
             test_loader=test_loader,
         )
@@ -175,7 +179,7 @@ if __name__ == "__main__":
 
         log_run_result(
             collection=result_collection,
-            run_name="run_test",
+            run_name=run_name,
             result_id=res["_id"],
             sc_train=SC_train,
             dbi_train=DBI_train,
