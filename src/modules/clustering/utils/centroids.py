@@ -15,6 +15,7 @@ def _calculate_similarity_matrix(X, metric):
 def calculate_centroids(latents, metric, k):
     similarity_matrix = _calculate_similarity_matrix(latents, metric)
     similarity_matrix = similarity_matrix.detach().numpy().astype(float)
+    similarity_matrix = np.nan_to_num(similarity_matrix)
 
     clustering_assignments = AgglomerativeClustering(
         n_clusters=k,

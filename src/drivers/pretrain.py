@@ -11,4 +11,4 @@ def pretrain_autoencoder(model, loader):
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print(loss.item())
+        # print(loss.item())

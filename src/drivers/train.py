@@ -27,5 +27,5 @@ def train_clustering_layer(encoder, embedding, decoder, metric, n_clusters, load
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-        print(loss.item())
+        # print(loss.item())
     return cl_model
