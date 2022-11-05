@@ -3,12 +3,13 @@ import torch.nn as nn
 
 
 class DTCClusterLayer(nn.Module):
-    def __init__(self, encoder, embedding, centroids, metric) -> None:
+    def __init__(self, encoder, embedding, centroids, metric, device) -> None:
         super().__init__()
         self.encoder = encoder
         self.embedding = embedding
         self.centroids = nn.Parameter(centroids)
         self.metric = metric
+        self.device = device
 
     def dist_to_centroids(self, x):
         dists = torch.zeros(x.shape[0], self.centroids.shape[0])
@@ -31,7 +32,7 @@ class DTCClusterLayer(nn.Module):
 
     def forward(self, x):
         h = self.encoder(x)
-        embedding_results = self.embedding(h)
+        embedding_results = self.embedding(h, self.device)
         D = self.dist_to_centroids(embedding_results[0])
         Q = self.students_t_distribution_kernel(D)
         P = self.target_distribution(Q)

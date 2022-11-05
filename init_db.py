@@ -4,18 +4,18 @@ import pymongo
 from bson.objectid import ObjectId
 from pymongo import MongoClient
 
-client = MongoClient("mongodb://root:rootpassword@localhost:27017/")
+client = MongoClient("")
 
 
 search_config = {
     "autoencoder": ["fcnn", "resnet", "lstm", "dtc"],
     "pretext_losses": ["mse", "multi_rec", "vae"],
     "cluster_losses": [None, "dtc"],
-    "metrics": ["eucl", "corr", "cid"],
-    "embedding_dim": [5, 10],
-    "n_clusters": [2, 3, 4, 5],
+    "metrics": ["eucl", "cid"],
+    "embedding_dim": [10],
+    "n_clusters": [2, 4, 6],
     "dim_reduction": [None, "PCA", "UMAP"],
-    "reduced_dim": [2, 5],
+    "reduced_dim": [5],
 }
 
 
