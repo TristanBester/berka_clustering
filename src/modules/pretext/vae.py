@@ -13,8 +13,8 @@ def _vae_loss(x, decoded, z_mean, z_log_var):
     return mse_loss + kl_div
 
 
-def vae_loss_handler(encoder, embedding, decoder, x):
+def vae_loss_handler(encoder, embedding, decoder, x, device):
     h = encoder(x)
-    z, z_mean, z_log_var = embedding(h)
+    z, z_mean, z_log_var = embedding(h, device)
     x_prime = decoder(z)
     return _vae_loss(x, x_prime, z_mean, z_log_var)

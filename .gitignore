@@ -3,3 +3,4 @@ data/
 .ipynb_checkpoints
 *.ipynb
 __pycache__/
+.env

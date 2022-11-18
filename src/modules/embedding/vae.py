@@ -13,13 +13,14 @@ class VAEEmbedding(nn.Module):
             in_features=in_features, out_features=embedding_dim
         )
 
-    def reparameterize(self, z_mu, z_log_var):
+    def reparameterize(self, z_mu, z_log_var, device):
         eps = torch.randn(z_mu.shape)
+        eps = eps.to(device=device)
         z = z_mu + eps * torch.exp(z_log_var / 2)
         return z.squeeze(1)
 
-    def forward(self, x):
+    def forward(self, x, device=None):
         z_mean = F.relu(self.z_mean_embedding(x))
         z_log_var = F.relu(self.z_log_var_embedding(x))
-        z = self.reparameterize(z_mean, z_log_var)
+        z = self.reparameterize(z_mean, z_log_var, device)
         return z, z_mean, z_log_var

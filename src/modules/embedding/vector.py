@@ -7,5 +7,5 @@ class VectorEmbedding(nn.Module):
         super().__init__()
         self.embedding = nn.Linear(in_features=in_features, out_features=embedding_dim)
 
-    def forward(self, x):
+    def forward(self, x, device=None):
         return F.relu(self.embedding(x)).squeeze(1), None, None
