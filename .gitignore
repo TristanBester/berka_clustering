@@ -4,3 +4,4 @@ data/
 *.ipynb
 __pycache__/
 .env
+archive/

@@ -1,23 +1,35 @@
+import os
 import time
 import warnings
 
 import numpy as np
 import torch
+from dotenv import load_dotenv
 from pymongo import MongoClient
+from rich.pretty import pprint
 from sklearn.metrics import davies_bouldin_score, silhouette_score
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from tqdm import tqdm
 
-from src.datasets import BeetleFly, Berka
+from src.datasets import Berka
 from src.db import get_config_by_id, get_results_missing_run, log_run_result
-from src.drivers import (calculate_clusters_from_latents,
-                         calculate_clusters_from_layer, pretrain_autoencoder,
-                         train_clustering_layer)
-from src.factories import (decoder_factory, embedding_factory, encoder_factory,
-                           metric_factory, pretext_factory)
+from src.drivers import (
+    calculate_clusters_from_latents,
+    calculate_clusters_from_layer,
+    pretrain_autoencoder,
+    train_clustering_layer,
+)
+from src.factories import (
+    decoder_factory,
+    embedding_factory,
+    encoder_factory,
+    metric_factory,
+    pretext_factory,
+)
 from src.models import Autoencoder
 
+load_dotenv()
 warnings.filterwarnings("ignore")
 
 
@@ -34,7 +46,7 @@ def process(
     seq_len,
     train_loader,
     test_loader,
-    device
+    device,
 ):
     encoder = encoder_factory(
         ae_name=ae_name,
@@ -58,7 +70,7 @@ def process(
         embedding=embedding,
         decoder=decoder,
         pretext_loss_fn=pretext_loss_fn,
-        device=device
+        device=device,
     )
 
     start_time = time.time()
@@ -93,7 +105,7 @@ def process(
                 k=n_clusters,
                 dim_reduction=dim_reduction,
                 lower_dim=reduced_dim,
-                device=device
+                device=device,
             )
             torch.cuda.empty_cache()
             test_clusters = calculate_clusters_from_latents(
@@ -102,7 +114,7 @@ def process(
                 k=n_clusters,
                 dim_reduction=dim_reduction,
                 lower_dim=reduced_dim,
-                device=device
+                device=device,
             )
     return train_clusters, test_clusters, training_time
 
@@ -116,7 +128,11 @@ def load_dataset(loader):
 
 
 if __name__ == "__main__":
-    client = MongoClient("")
+    client = MongoClient(
+        username=os.getenv("MONGO_USERNAME"),
+        password=os.getenv("MONGO_PASSWORD"),
+        authSource="admin",
+    )
     db = client.result_db
     config_collection = db.config_collection
     result_collection = db.result_collection
@@ -129,9 +145,7 @@ if __name__ == "__main__":
     )
 
     for run_count in range(1, 6):
-        # Creating data indices for training and validation splits:
         dataset_size = len(dataset)
-        # dataset_size = 1000
         indices = list(range(dataset_size))
         split = int(np.floor(test_frac * dataset_size))
         np.random.shuffle(indices)
@@ -141,10 +155,8 @@ if __name__ == "__main__":
         test_sampler = SubsetRandomSampler(test_indices)
 
         train_loader = DataLoader(dataset, batch_size=batch_size, sampler=train_sampler)
-        test_loader = DataLoader(dataset, batch_size=batch_size, sampler=test_sampler)\
-        
-
-        device = torch.device('cuda')
+        test_loader = DataLoader(dataset, batch_size=batch_size, sampler=test_sampler)
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         X_train = load_dataset(train_loader)
         X_test = load_dataset(test_loader)
@@ -155,10 +167,16 @@ if __name__ == "__main__":
         doc_count = result_collection.count_documents({run_name: {"$exists": False}})
 
         results = [r for r in results]
-        configs = [get_config_by_id(config_collection, res["config_id"]) for res in results]
+        configs = [
+            get_config_by_id(config_collection, res["config_id"]) for res in results
+        ]
 
-        for (cfg, res) in tqdm(zip(configs, results), total=doc_count):
-            # cfg = get_config_by_id(config_collection, res["config_id"])
+        for cfg, res in tqdm(zip(configs, results), total=doc_count):
+            print("--------------------------------")
+            print("Evaluating config:")
+            print("--------------------------------")
+            pprint(cfg)
+            print("--------------------------------")
 
             try:
                 clusters_train, clusters_test, train_time = process(
@@ -174,7 +192,7 @@ if __name__ == "__main__":
                     seq_len=675,
                     train_loader=train_loader,
                     test_loader=test_loader,
-                    device=device
+                    device=device,
                 )
 
                 if len(np.unique(clusters_train)) == cfg["n_clusters"]:
@@ -190,33 +208,30 @@ if __name__ == "__main__":
                 else:
                     SC_test = -1
                     DBI_test = -1
-                    
 
-            except:
+            except Exception as e:
                 SC_test = -2
                 DBI_test = -2
                 SC_train = -2
                 DBI_train = -2
                 train_time = 0
-                print('Crashed')
+                print(f"Error: {str(e)}")
 
+            try:
+                log_run_result(
+                    collection=result_collection,
+                    run_name=run_name,
+                    result_id=res["_id"],
+                    sc_train=SC_train,
+                    dbi_train=DBI_train,
+                    sc_test=SC_test,
+                    dbi_test=DBI_test,
+                    train_time=train_time,
+                )
+                break
+            except Exception as e:
+                print(str(e))
+                print("Could not log result to database")
+                time.sleep(5)
 
-            while True:
-                try:
-                    log_run_result(
-                        collection=result_collection,
-                        run_name=run_name,
-                        result_id=res["_id"],
-                        sc_train=SC_train,
-                        dbi_train=DBI_train,
-                        sc_test=SC_test,
-                        dbi_test=DBI_test,
-                        train_time=train_time,
-                    )
-                    break 
-                except Exception as e:
-                    print(str(e))
-                    print('Crash')
-                    time.sleep(5)
-                    
             torch.cuda.empty_cache()

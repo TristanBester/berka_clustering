@@ -1,10 +1,18 @@
+import os
 from itertools import product
 
 import pymongo
 from bson.objectid import ObjectId
+from dotenv import load_dotenv
 from pymongo import MongoClient
 
-client = MongoClient("")
+load_dotenv()
+
+client = MongoClient(
+    username=os.getenv("MONGO_USERNAME"),
+    password=os.getenv("MONGO_PASSWORD"),
+    authSource="admin",
+)
 
 
 search_config = {
